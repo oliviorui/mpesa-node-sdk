@@ -1,6 +1,13 @@
+export type MpesaEnvironment =
+  | "sandbox"
+  | "production";
+
 export interface MpesaConfig {
   apiKey: string;
-  environment?: "sandbox" | "production";
+  publicKey?: string;
+  serviceProviderCode?: string;
+  environment?: MpesaEnvironment;
+  timeout?: number;
 }
 
 export interface PaymentRequest {

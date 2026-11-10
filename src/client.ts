@@ -1,20 +1,60 @@
-import type { MpesaConfig } from "./types.js";
+import { MpesaError } from "./errors.js";
+
+import type {
+  MpesaConfig,
+  MpesaEnvironment,
+} from "./types.js";
 
 export class Mpesa {
-  private readonly config: MpesaConfig;
+  private readonly config: Required<
+    Pick<MpesaConfig, "apiKey" | "environment" | "timeout">
+  > & Omit<MpesaConfig, "apiKey" | "environment" | "timeout">;
 
   constructor(config: MpesaConfig) {
-    if (!config.apiKey) {
-      throw new Error("M-Pesa API key is required");
+    if (!config.apiKey?.trim()) {
+      throw new MpesaError(
+        "M-Pesa API key is required",
+        "INVALID_API_KEY"
+      );
+    }
+
+    const environment = config.environment ?? "sandbox";
+
+    if (
+      environment !== "sandbox" &&
+      environment !== "production"
+    ) {
+      throw new MpesaError(
+        "Invalid M-Pesa environment",
+        "INVALID_ENVIRONMENT"
+      );
+    }
+
+    const timeout = config.timeout ?? 30000;
+
+    if (
+      !Number.isSafeInteger(timeout) ||
+      timeout <= 0
+    ) {
+      throw new MpesaError(
+        "Timeout must be a positive integer",
+        "INVALID_TIMEOUT"
+      );
     }
 
     this.config = {
-      environment: "sandbox",
       ...config,
+      apiKey: config.apiKey.trim(),
+      environment,
+      timeout,
     };
   }
 
-  getEnvironment(): string {
-    return this.config.environment ?? "sandbox";
+  getEnvironment(): MpesaEnvironment {
+    return this.config.environment;
+  }
+
+  getTimeout(): number {
+    return this.config.timeout;
   }
 }

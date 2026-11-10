@@ -16,7 +16,9 @@
   ],
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/run-vitest.mjs",
+    "test:run": "node scripts/run-vitest.mjs run"
   },
   "keywords": [
     "mpesa",
@@ -28,6 +30,8 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vite": "^7.3.8",
+    "vitest": "4.1"
   }
 }

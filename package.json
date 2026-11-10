@@ -1,0 +1,33 @@
+{
+  "name": "mpesa-node-sdk",
+  "version": "0.1.0",
+  "description": "A TypeScript SDK for M-Pesa payments in Mozambique",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mpesa",
+    "mozambique",
+    "payments",
+    "sdk",
+    "typescript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -3,11 +3,13 @@ import { MpesaError } from "./errors.js";
 export interface HttpClientConfig {
   baseUrl: string;
   timeout?: number;
+  allowedAuthOrigins?: readonly string[];
 }
 
 export class HttpClient {
   private readonly baseUrl: string;
   private readonly timeout: number;
+  private readonly allowedAuthOrigins: ReadonlySet<string>;
 
   constructor(config: HttpClientConfig) {
     if (!config.baseUrl) {
@@ -55,6 +57,35 @@ export class HttpClient {
         "INVALID_TIMEOUT"
       );
     }
+
+    this.allowedAuthOrigins = new Set(
+      (config.allowedAuthOrigins ?? []).map((origin) => {
+        let url: URL;
+
+        try {
+          url = new URL(origin);
+        } catch {
+          throw new MpesaError(
+            "Invalid authenticated origin",
+            "INVALID_AUTH_ORIGIN"
+          );
+        }
+
+        if (
+          url.protocol !== "https:" ||
+          origin !== url.origin ||
+          url.username ||
+          url.password
+        ) {
+          throw new MpesaError(
+            "Invalid authenticated origin",
+            "INVALID_AUTH_ORIGIN"
+          );
+        }
+
+        return url.origin;
+      })
+    );
   }
 
   async post<TResponse>(
@@ -88,6 +119,27 @@ export class HttpClient {
         throw new MpesaError(
           "Invalid API endpoint",
           "INVALID_ENDPOINT"
+        );
+      }
+
+      const hasAuthorizationHeader = Object.keys(headers).some(
+        (name) => name.toLowerCase() === "authorization"
+      );
+      
+      if (hasAuthorizationHeader && url.protocol !== "https:") {
+        throw new MpesaError(
+          "Authenticated requests require HTTPS",
+          "INSECURE_TRANSPORT"
+        );
+      }
+
+      if (
+        hasAuthorizationHeader &&
+        !this.allowedAuthOrigins.has(url.origin)
+      ) {
+        throw new MpesaError(
+          "Authenticated request origin is not allowed",
+          "UNAUTHORIZED_ORIGIN"
         );
       }
 

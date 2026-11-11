@@ -79,18 +79,21 @@ npm test
 
 ## Roadmap
 
-- [x] Initial project setup
-- [x] TypeScript configuration
+- [x] TypeScript SDK architecture
 - [x] HTTP client
-- [x] Error handling
 - [x] Payment validation
 - [x] Mock payment simulation
-- [x] Transaction state management
-- [x] Transaction history
-- [x] Automated unit and integration tests
+- [x] Mock transaction lifecycle
+- [x] Mock transaction history
+- [x] RSA public key validation
+- [x] RSA encryption utilities
+- [x] Authentication header generation
+- [x] HTTPS enforcement
+- [x] Authenticated origin allowlist
+- [x] Automated tests
 - [x] Executable sandbox demonstration
-- [ ] Official M-Pesa authentication
-- [ ] Real C2B payment integration
+- [ ] Official M-Pesa gateway validation
+- [ ] Real C2B payments
 - [ ] Official transaction status queries
 - [ ] Transaction reversals
 - [ ] npm publication
@@ -267,6 +270,86 @@ npm run example:mock
 
 The demo creates a pending payment, confirms it, retrieves
 the transaction, and displays the transaction history.
+
+## Authentication and Security
+
+The SDK provides utilities for preparing M-Pesa Mozambique authentication.
+
+**Important:** Authentication with the official M-Pesa gateway has not yet been verified. The SDK does not currently support production payments.
+
+### Credential Validation
+
+```ts
+import { validateCredentials } from "mpesa-node-sdk";
+
+const credentials = validateCredentials({
+  apiKey: process.env.MPESA_API_KEY!,
+  publicKey: process.env.MPESA_PUBLIC_KEY!,
+  serviceProviderCode:
+    process.env.MPESA_SERVICE_PROVIDER_CODE!,
+});
+```
+
+### RSA Encryption
+
+The SDK includes RSA PKCS#1 v1.5 encryption and Base64 encoding.
+
+```ts
+import { encryptApiKey } from "mpesa-node-sdk";
+
+const token = encryptApiKey(
+  process.env.MPESA_API_KEY!,
+  process.env.MPESA_PUBLIC_KEY!
+);
+```
+
+This implements a cryptographic operation used by some M-Pesa Mozambique integrations. Compatibility with the official gateway must be verified.
+
+### Authentication Headers
+
+```ts
+import { createAuthHeaders } from "mpesa-node-sdk";
+
+const headers = createAuthHeaders({
+  apiKey: process.env.MPESA_API_KEY!,
+  publicKey: process.env.MPESA_PUBLIC_KEY!,
+  serviceProviderCode:
+    process.env.MPESA_SERVICE_PROVIDER_CODE!,
+});
+```
+
+### HTTP Security
+
+The HTTP client includes:
+
+- HTTPS enforcement for authenticated requests
+- Explicit allowlist of authorized HTTPS origins
+- Endpoint path validation
+- Redirect rejection
+- Request timeout handling
+- Generic error messages that avoid embedding credentials
+
+Authenticated requests require an explicitly approved destination.
+
+```ts
+import { HttpClient } from "mpesa-node-sdk";
+
+const client = new HttpClient({
+  baseUrl: "https://example.com/mock/",
+  allowedAuthOrigins: ["https://example.com"],
+});
+```
+
+The URL above is illustrative and is not an official M-Pesa endpoint.
+
+### Security Limitations
+
+- Official API authentication has not been verified.
+- Production payment operations are disabled.
+- Authentication destinations must be configured by trusted server-side code.
+- The HTTP client is not a complete SSRF protection mechanism.
+- Credentials must never be placed in frontend code or committed to version control.
+- Real API integration requires additional security testing and official gateway validation.
 
 ## License
 

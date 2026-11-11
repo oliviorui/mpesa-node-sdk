@@ -214,4 +214,52 @@ describe("HttpClient", () => {
       code: "INVALID_ENDPOINT",
     });
   });
+
+  it("should reject authenticated requests over HTTP", async () => {
+    const mockFetch = vi.fn();
+
+    vi.stubGlobal("fetch", mockFetch);
+
+    const client = new HttpClient({
+      baseUrl: "http://example.com/",
+    });
+
+    await expect(
+      client.post(
+        "/payment",
+        { amount: 1500 },
+        {
+          Authorization: "Bearer fake-token",
+        }
+      )
+    ).rejects.toMatchObject({
+      code: "INSECURE_TRANSPORT",
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("should reject lowercase authorization over HTTP", async () => {
+    const mockFetch = vi.fn();
+
+    vi.stubGlobal("fetch", mockFetch);
+
+    const client = new HttpClient({
+      baseUrl: "http://example.com/",
+    });
+
+    await expect(
+      client.post(
+        "/payment",
+        { amount: 1500 },
+        {
+          authorization: "Bearer fake-token",
+        }
+      )
+    ).rejects.toMatchObject({
+      code: "INSECURE_TRANSPORT",
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });

@@ -16,3 +16,15 @@ export { MockPaymentService } from "./mock-payment.js";
 export type {
   MockPaymentStatus,
 } from "./mock-payment.js";
+
+export { validateCredentials } from "./credentials.js";
+
+export type {
+  MpesaCredentials,
+} from "./credentials.js";
+
+export {
+  normalizePublicKey,
+  encryptApiKey,
+  createAuthHeaders,
+} from "./auth.js";

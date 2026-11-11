@@ -17,6 +17,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "verify":"npm run test:run && npm run build && npm run typecheck",
     "test": "node scripts/run-vitest.mjs",
     "test:run": "node scripts/run-vitest.mjs run",
     "example:mock": "npm run build && node examples/mock-payment.mjs"

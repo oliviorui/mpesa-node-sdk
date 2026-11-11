@@ -88,4 +88,67 @@ describe("MockPaymentService", () => {
 
     expect(service.getTransactions()).toHaveLength(2);
   });
+
+  it("should protect stored transactions from external changes", () => {
+    const service = new MockPaymentService();
+
+    const payment = service.createPayment(validPayment);
+
+    payment.status = "success";
+
+    const stored = service.getTransaction(
+        payment.transactionId
+    );
+
+    expect(stored?.status).toBe("pending");
+    });
+
+    it("should protect transaction history from external changes", () => {
+    const service = new MockPaymentService();
+
+    const payment = service.createPayment(validPayment);
+
+    const history = service.getTransactions();
+
+    expect(history).toHaveLength(1);
+
+    history[0]!.status = "failed";
+
+    expect(
+        service.getTransaction(payment.transactionId)?.status
+    ).toBe("pending");
+  });
+
+  it("should reject invalid mock payment statuses", () => {
+    const service = new MockPaymentService();
+
+    expect(() =>
+        service.createPayment(
+        validPayment,
+        "cancelled" as never
+        )
+    ).toThrow("Invalid mock payment status");
+
+    expect(service.getTransactions()).toHaveLength(0);
+  });
+
+  it("should reject invalid status without creating a transaction", () => {
+    const service = new MockPaymentService();
+
+    try {
+        service.createPayment(
+        validPayment,
+        "unknown" as never
+        );
+
+        expect.fail("Expected an invalid status error");
+    } catch (error) {
+        expect(error).toMatchObject({
+        name: "MpesaError",
+        code: "INVALID_TRANSACTION_STATUS",
+        });
+    }
+
+    expect(service.getTransactions()).toEqual([]);
+  });
 });

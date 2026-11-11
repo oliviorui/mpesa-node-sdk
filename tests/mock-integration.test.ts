@@ -65,4 +65,98 @@ describe("Mpesa Mock Integration", () => {
       "Mock transactions are only available in sandbox"
     );
   });
+
+  it("should update a pending mock payment to success", async () => {
+    const mpesa = new Mpesa({
+        apiKey: "test-key",
+        environment: "sandbox",
+    });
+
+    const payment = await mpesa.mockPayment(paymentRequest);
+
+    expect(payment.status).toBe("pending");
+
+    const updated = mpesa.updateMockTransaction(
+        payment.transactionId,
+        "success"
+    );
+
+    expect(updated.status).toBe("success");
+
+    const transaction = mpesa.getMockTransaction(
+        payment.transactionId
+    );
+
+    expect(transaction?.status).toBe("success");
+  });
+
+  it("should reject updating a finalized transaction", async () => {
+    const mpesa = new Mpesa({
+        apiKey: "test-key",
+    });
+
+    const payment = await mpesa.mockPayment(
+        paymentRequest,
+        "success"
+    );
+
+    expect(() =>
+        mpesa.updateMockTransaction(
+        payment.transactionId,
+        "failed"
+        )
+    ).toThrow("Transaction is already finalized");
+  });
+
+  it("should reject updating mock transactions in production", () => {
+    const mpesa = new Mpesa({
+        apiKey: "test-key",
+        environment: "production",
+    });
+
+    expect(() =>
+        mpesa.updateMockTransaction(
+        "MOCK-123",
+        "success"
+        )
+    ).toThrow("Mock transactions are only available in sandbox");
+  });
+
+
+  it("should return the mock transaction history", async () => {
+    const mpesa = new Mpesa({
+        apiKey: "test-key",
+        environment: "sandbox",
+    });
+
+    await mpesa.mockPayment(paymentRequest, "success");
+    await mpesa.mockPayment(paymentRequest, "failed");
+
+    const transactions = mpesa.getMockTransactions();
+
+    expect(transactions).toHaveLength(2);
+    expect(transactions[0]?.status).toBe("success");
+    expect(transactions[1]?.status).toBe("failed");
+  });
+
+  it("should return an empty history initially", () => {
+    const mpesa = new Mpesa({
+        apiKey: "test-key",
+    });
+
+    expect(mpesa.getMockTransactions()).toEqual([]);
+  });
+
+  it("should reject mock history access in production", () => {
+    const mpesa = new Mpesa({
+        apiKey: "test-key",
+        environment: "production",
+    });
+
+    expect(() =>
+        mpesa.getMockTransactions()
+    ).toThrow(
+        "Mock transactions are only available in sandbox"
+    );
+  });
 });

@@ -124,4 +124,32 @@ export class Mpesa {
 
     return this.mockService.getTransaction(transactionId);
   }
+
+  updateMockTransaction(
+    transactionId: string,
+    status: MockPaymentStatus
+  ): PaymentResponse {
+    if (this.config.environment !== "sandbox") {
+      throw new MpesaError(
+        "Mock transactions are only available in sandbox",
+        "MOCK_NOT_ALLOWED"
+      );
+    }
+
+    return this.mockService.updateTransaction(
+      transactionId,
+      status
+    );
+  }
+
+  getMockTransactions(): PaymentResponse[] {
+    if (this.config.environment !== "sandbox") {
+      throw new MpesaError(
+        "Mock transactions are only available in sandbox",
+        "MOCK_NOT_ALLOWED"
+      );
+    }
+
+    return this.mockService.getTransactions();
+  }
 }

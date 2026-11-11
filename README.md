@@ -81,13 +81,18 @@ npm test
 
 - [x] Initial project setup
 - [x] TypeScript configuration
-- [x] SDK architecture
-- [x] Initial unit tests
-- [ ] HTTP client
-- [ ] Payment operations
-- [ ] Transaction queries
-- [ ] Refund support (subject to API capabilities)
-- [ ] Sandbox integration
+- [x] HTTP client
+- [x] Error handling
+- [x] Payment validation
+- [x] Mock payment simulation
+- [x] Transaction state management
+- [x] Transaction history
+- [x] Automated unit and integration tests
+- [x] Executable sandbox demonstration
+- [ ] Official M-Pesa authentication
+- [ ] Real C2B payment integration
+- [ ] Official transaction status queries
+- [ ] Transaction reversals
 - [ ] npm publication
 
 ## Security
@@ -171,6 +176,97 @@ This command builds the SDK and executes a complete mock payment example.
 - The SDK has not been published to npm
 ```
 
+## Mock Transaction Lifecycle
+
+The SDK supports simulated payment lifecycle management.
+
+Mock transactions can transition from `pending` to either
+`success` or `failed`.
+
+Finalized transactions cannot be modified.
+
+### Create a pending payment
+
+```ts
+const payment = await mpesa.mockPayment({
+  phone: "258841234567",
+  amount: 1500,
+  reference: "ORDER-001",
+});
+
+console.log(payment.status); // pending
+```
+
+### Confirm a payment
+
+```ts
+const updated = mpesa.updateMockTransaction(
+  payment.transactionId,
+  "success"
+);
+
+console.log(updated.status); // success
+```
+
+### Retrieve a transaction
+
+```ts
+const transaction = mpesa.getMockTransaction(
+  payment.transactionId
+);
+
+console.log(transaction);
+```
+
+### List transaction history
+
+```ts
+const history = mpesa.getMockTransactions();
+
+console.table(history);
+```
+
+### Transaction State Rules
+
+| Current State | Target State | Allowed |
+|---|---|---|
+| pending | success | Yes |
+| pending | failed | Yes |
+| pending | pending | No |
+| success | failed | No |
+| failed | success | No |
+
+Mock transactions are stored in memory and are not persisted
+between SDK instances or application restarts.
+
+These states represent local simulations only, not actual
+M-Pesa transaction confirmations.
+
+## Error Handling
+
+The SDK provides a custom `MpesaError` class with error codes.
+
+```ts
+import { MpesaError } from "mpesa-node-sdk";
+
+try {
+  // SDK operation
+} catch (error) {
+  if (error instanceof MpesaError) {
+    console.error(error.code);
+    console.error(error.message);
+  }
+}
+```
+
+## Run the Complete Demo
+
+```bash
+npm run example:mock
+```
+
+The demo creates a pending payment, confirms it, retrieves
+the transaction, and displays the transaction history.
 
 ## License
 

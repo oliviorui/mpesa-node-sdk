@@ -96,6 +96,82 @@ Never commit real API keys or credentials.
 
 Keep payment credentials on the server side and use environment variables.
 
+## Sandbox Payment Simulation
+
+The SDK includes an in-memory payment simulator for development and testing.
+
+No real M-Pesa transactions are performed.
+
+### Create a mock payment
+
+```ts
+import { Mpesa } from "mpesa-node-sdk";
+
+const mpesa = new Mpesa({
+  apiKey: "sandbox-test-key",
+  environment: "sandbox",
+});
+
+const payment = await mpesa.mockPayment(
+  {
+    phone: "258841234567",
+    amount: 1500,
+    reference: "ORDER-001",
+  },
+  "success"
+);
+
+console.log(payment);
+```
+
+### Supported mock statuses
+
+- `success` — Simulated successful payment
+- `failed` — Simulated failed payment
+- `pending` — Simulated pending payment (default)
+
+### Retrieve a mock transaction
+
+```ts
+const transaction = mpesa.getMockTransaction(
+  payment.transactionId
+);
+
+console.log(transaction);
+```
+
+Mock transactions are stored in memory and are not persisted between SDK instances or application restarts.
+
+## Payment Validation
+
+The SDK currently validates:
+
+- Mozambique phone number format
+- Positive and finite payment amounts
+- Maximum of two decimal places
+- Optional payment references
+
+These are preliminary SDK validation rules, not a guarantee that a phone number is registered with M-Pesa or that the amount meets official transaction limits.
+
+## Run the Example
+
+```bash
+npm run example:mock
+```
+
+This command builds the SDK and executes a complete mock payment example.
+
+## Current Limitations
+
+- Real M-Pesa authentication is not implemented
+- Real payment requests are not supported
+- Production payments are disabled
+- Mock transactions are stored in memory
+- Transaction reversal and refund operations are not implemented
+- The SDK has not been published to npm
+```
+
+
 ## License
 
 MIT

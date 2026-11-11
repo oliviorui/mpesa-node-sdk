@@ -18,7 +18,8 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-vitest.mjs",
-    "test:run": "node scripts/run-vitest.mjs run"
+    "test:run": "node scripts/run-vitest.mjs run",
+    "example:mock": "npm run build && node examples/mock-payment.mjs"
   },
   "keywords": [
     "mpesa",
